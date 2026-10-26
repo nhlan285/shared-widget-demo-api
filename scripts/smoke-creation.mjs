@@ -60,6 +60,11 @@ for(const [i,u]of fixture.users.entries()){
 statements.push(`UPDATE pairs SET status='active' WHERE pair_id=${quote(fixture.pairId)} AND status='forming';`);
 fixture.origin=origin;fs.writeFileSync(fixturePath,JSON.stringify(fixture,null,2));
 sql(statements.join("\n"));
+if(process.argv.includes("--refresh-session-only")){
+  console.log(JSON.stringify({refreshedSyntheticSession:true,origin,
+    preservedArtwork:true,privateFixture:fixturePath}));
+  process.exit(0);
+}
 const [a,b]=fixture.users;
 async function api(method,path,user,body,headers={}){
   const res=await fetch(origin+"/v1"+path,{method,headers:{

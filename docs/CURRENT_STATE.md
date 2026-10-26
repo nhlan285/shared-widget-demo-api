@@ -26,4 +26,9 @@ latest widget metadata. NOT signup/email/OTP acceptance or two physical devices.
 Fixtures are own example.invalid users in dedicated demo D1 only. Script
 scripts/smoke-creation.mjs refuses other account/database/Worker targets.
 Local fixture JSON contains JWTs: NEVER commit/print/copy into APK.
-Next: push only feature/demo-creation-api in new own repo; frontend remains local.
+Own branch pushed/verified5daee6447304c612867938661434268b7255e7d4.
+Safe fixture renewal: node scripts/smoke-creation.mjs --refresh-session-only
+(updates only the owned synthetic session; keeps every open/saved artwork).
+Never rerun the full smoke merely to renew a phone fixture: that suite can discard
+its own active QA canvas. Production auth still requires host/SMTP setup.
+Frontend remains local-only on feature/ui-doodle-editor.
