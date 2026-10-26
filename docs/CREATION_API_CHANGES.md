@@ -1,0 +1,60 @@
+# Đề xuất API — Doodle và Tranh đôi
+
+Trạng thái: PROPOSED / NOT DEPLOYED. R2 đã có theo xác nhận của chủ dự án.
+Nguồn: D:/Dyland/Downloads/api-docs.json, SHA256
+279713559946def8f59cb243083421ad01a66c7e4af272152654e91343d877a8.
+Không sửa bản gốc trong Downloads; không sửa auth, pair, device hoặc scan service.
+Các JSON pointer dưới đây là vị trí cần cập nhật trong OpenAPI/backend. Chỉ sửa
+Swagger không tạo ra API đang chạy. Flutter phải kiểm tra capability trước khi ghi.
+
+## Hai loại nội dung
+`doodle`: một người chụp ảnh/vẽ/sticker/text hoặc vẽ nền trống; soạn riêng trên
+máy, gửi một PNG đã flatten; người kia chỉ thấy sau khi gửi. Hết 24h thì rời widget
+và không được truy cập nội dung. Thư viện còn metadata ngày/người gửi cùng thẻ hết
+hạn; không giữ ảnh bí mật bằng cache. Nếu muốn lưu Doodle lâu dài cần yêu cầu riêng.
+
+`shared_canvas`: hai người vẽ cùng, một canvas active/pair; owner là người thắng
+transaction tạo. Owner mới đặt tên/lưu/đóng/hủy. Partner rời màn hình không đóng
+room. Bản lưu bất biến không có TTL; widget canvas lấy bản lưu mới nhất.
+
+## Bảng thay đổi (mọi thay đổi hợp đồng trong phạm vi này)
+| Vị trí OpenAPI (JSON pointer) | Thao tác | Nội dung / lý do | Nơi dùng Flutter |
+| --- | --- | --- | --- |
+| `/paths/~1postcards~1capabilities/get` | Thêm | `{data:{contractVersion:2,privateDoodles:true,singleActiveCanvas:true,canvasArchive:true}}`; chỉ bật khi backend đã triển khai đầy đủ semantics tương ứng. 404/501 là chưa hỗ trợ, không thay bằng mock | CreationWorkspace bootstrap, khóa CTA chưa hỗ trợ |
+| `/components/schemas/Postcard/properties` | Sửa/thêm | `kind: doodle/shared_canvas`, `title`, `expiresAt` nullable, `closedAt` nullable; `status` thêm `saved`; `senderId` là owner; required ID/kind/status/dimensions/timestamps. Bản cũ thiếu kind không tự đoán | Library, Doodle widget, room owner |
+| `/paths/~1postcards/get/parameters` | Thêm | `kind`, `from`, `to` RFC3339 inclusive/exclusive, `senderId` lặp hoặc CSV được quy định thống nhất, `q` Unicode; lọc TRƯỚC phân trang. `status` thêm saved. Sắp thời gian DESC rồi ID DESC. `data.hasMore` boolean. 50/page | Library dùng cùng bộ lọc cho All/Tranh đôi/Doodle |
+| `/paths/~1postcards~1doodles/post` | Thêm | multipart `file` PNG/JPEG <=10MB, `caption` <=160, `source:camera/blank`; `Idempotency-Key` UUID bắt buộc scoped user/pair; atomically upload private + sentAt/expiresAt=sentAt+24h; cùng key cùng payload trả bản cũ, payload khác 409; không tạo shared draft | Hai editor -> một preview -> send |
+| `/paths/~1postcards~1drafts/post` | Sửa | body cũ + `kind:shared_canvas`; enforce unique active canvas PAIR bằng transaction/DO, không chỉ unique owner. 409 trả `data.activePostcardId`; client mở bản thắng. Trả ownerId qua senderId và snapshot canonical; không publish private Doodle draft | Draw/Vẽ ở lobby |
+| `/paths/~1postcards~1active-canvas/get` | Thêm | `{data:Postcard|null}` snapshot canonical, tối đa một canvas active. 403 pair mất, null là không có. Không suy ra từ trang đầu danh sách | Active card / ẩn Draw, join/reconnect |
+| `/paths/~1postcards~1{id}~1close/post` | Thêm | Owner only; multipart `file,title,revision,lockId`; title 1..80 sau trim. Dùng lock hiện có, kiểm tra đúng revision/kích thước; đóng active + lưu status=saved bất biến atomically; retry đã saved trả bản cũ. Mở khóa khi upload lỗi matching lock; TTL lock120s | Lưu & đóng canvas |
+| `/paths/~1postcards~1{id}/delete` | Giữ/sửa mô tả | Chỉ owner hủy canvas draft unlocked; không DELETE sent/saved; không dùng DELETE khi partner rời | Owner hủy khi thoát |
+| `/paths/~1postcards~1{id}~1send/post` | Deprecate cho luồng mới | Giữ tương thích postcard cũ; không dùng để gửi PNG Doodle riêng vì snapshot shared không chứa camera/sticker. Không xóa endpoint đang có client | Legacy only |
+| `/paths/~1postcards~1widget-state/get` | Thêm | `{data:{doodle:Postcard|null,canvas:Postcard|null}}`; doodle mới nhất chưa hết hạn, canvas shared saved mới nhất theo closedAt; server time `now`; client ẩn TTL trên resume/đúng deadline. Không gồm draft | Hai Android widgets về sau |
+| `/paths/~1postcards~1{id}~1image/get` | Sửa | Giữ Bearer và bytes, same-origin API; Doodle hết hạn trả410, thu hồi R2; Cache-Control:private,no-store. Pair disconnect/auth mất phải thu hồi bytes cache; canvas saved vẫn truy cập khi pair active | PrivateArtwork / detail |
+| WebSocket protocol trong POSTCARD_REALTIME.md | Thêm | Giữ stroke.* snapshot/revision/lock đã có. Room broadcasts `canvas.created` với postcard, `canvas.closed` với postcard, `canvas.discarded` với postcardId và `doodle.sent` với postcard; pair-wide events buộc refetch authoritative lists/active. Không broadcast Doodle nháp | Lobby, library invalidation, editor |
+| `/components/schemas/ErrorResponse` (riêng creation) | Thêm | Machine `code`: FEATURE_NOT_AVAILABLE, ACTIVE_CANVAS_EXISTS, REVISION_CONFLICT, NOT_OWNER, DOODLE_EXPIRED; không đổi mã401/403; 410 hết hạn; 503 R2/DO | Recovery/disabled states |
+
+Không xóa endpoint/schema auth/pair/scan/device. Không thêm API fake reactions,
+streak, share-link, read receipt khi chưa có nghiệp vụ/contract. Tạm ẩn chức năng
+đó trong runtime thật; demo/test fixtures không phải API.
+
+## Realtime và đua đồng thời
+Server singleton transaction quyết định, client ẩn nút chỉ là UX. A/B cùng Draw:
+1 request201 thắng; request409 chứa ID thắng -> fetch/join room đó. Join/leave
+không thay owner. GET active + room.snapshot sau reconnect là nguồn chính xác.
+Client không tiếp tục gửi offline, không replay mù sau clear. Event revision gap
+-> sync; export duy nhất snapshot trả từ lock; owner đối chiếu trạng thái sau timeout
+trước khi retry close. Đóng/hủy room phải thông báo cả lobby lẫn editor.
+
+## Kích thước và dữ liệu
+Shared canvas hiện3:4 (1080x1440); Doodle/camera giữ kích thước PNG thực tế, cùng
+một kind=doodle. Android widget `2x2` là số ô launcher (không phải aspect ratio2:2
+vì2:2 vẫn=1:1); launcher/OEM có thể resize. Không crop ảnh3:4 thành vuông làm
+mất nét: fitCenter/letterbox. Widget native và cập nhật background cần WorkManager/
+push được duyệt ở phase riêng; không đánh đồng preview Flutter với widget OS.
+
+## Trạng thái tích hợp
+API đang có: GET pair/current, postcards list/detail/image, ticket/stroke/lock.
+API đề xuất chưa có capability: không gọi write từ production. Bản FE phải hiển
+thị yêu cầu backend, không mô phỏng gửi thành công. Chưa có credential test từ auth
+ở nhánh này; không yêu cầu người dùng gửi JWT/password/OTP vào chat.

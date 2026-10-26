@@ -70,11 +70,8 @@ function createTestServer({ withoutR2 = false } = {}) {
         migrations_dir: path.join(ROOT, "migrations"),
       }],
       r2_buckets: withoutR2 ? [] : [{ binding: "FILES", bucket_name: "shared-widget-test-files" }],
-<<<<<<< HEAD
       durable_objects: { bindings: [{ name: "POSTCARD_ROOMS", class_name: "PostcardRoom" }] },
       migrations: [{ tag: "postcards-v1", new_sqlite_classes: ["PostcardRoom"] }],
-=======
->>>>>>> ad1ce781e855bf757bd31598bfc3290135f6562d
       vars: {
         JWT_SECRET, NODE_ENV: "development",
         INVITATION_HMAC_SECRET: "test-invitation-secret",
@@ -150,7 +147,7 @@ function createTestServer({ withoutR2 = false } = {}) {
   const api = async (method, url, options = {}) => {
     // Synchronous Wrangler fixture commands can block this process past the
     // Worker's keep-alive timeout. Do not reuse stale sockets after those calls.
-    const headers = { Connection: "close" };
+    const headers = { Connection: "close", ...(options.headers || {}) };
     if (options.token) headers.Authorization = `Bearer ${options.token}`;
     let body;
     if (Object.prototype.hasOwnProperty.call(options, "json")) {

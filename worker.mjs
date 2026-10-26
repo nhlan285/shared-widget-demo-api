@@ -74,7 +74,13 @@ export default {
       if (!env.FILES) {
         return new Response("Image storage is temporarily disabled", { status: 503 });
       }
-      const key = decodeURIComponent(url.pathname.slice(FILES_PREFIX.length));
+      let key;
+      try { key = decodeURIComponent(url.pathname.slice(FILES_PREFIX.length)); }
+      catch { return new Response("Invalid path", { status:400 }); }
+      // All creation media stays private, including encoded slash variants.
+      if (key === "postcards" || key.startsWith("postcards/")) {
+        return new Response("Not Found", {status:404,headers:{"cache-control":"no-store"}});
+      }
       return serveFile(request, env.FILES, key);
     }
 

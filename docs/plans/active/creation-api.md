@@ -21,4 +21,6 @@ R2 tests; remote smoke. Email credentials not configured; no native OS widgets.
 Source extracted/dependencies installed. First GitHub MCP create failed bad
 credentials; Cloudflare rejected create because sample account config was still
 present (no resource created). Config now corrected to verified own account.
-Next: provision dedicated resources, implement/tests, update CURRENT_STATE.
+Milestone: dedicated D1/R2 created; creation implementation and51/51 tests PASS.
+OpenAPI/dry-run PASS. Source conflicts and private media exposure repaired.
+Next: own-demo migration/deploy, synthetic remote smoke, own repo push.

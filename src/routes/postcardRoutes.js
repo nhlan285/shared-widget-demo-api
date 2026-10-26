@@ -1,16 +1,22 @@
 const express = require("express");
 const controller = require("../controllers/postcardController");
+const creation = require("../controllers/creationController");
 const { authenticateToken } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 router.use(authenticateToken);
+router.get("/capabilities", creation.capabilities);
+router.get("/active-canvas", creation.active);
+router.get("/widget-state", creation.widgetState);
+router.post("/doodles", creation.doodle);
 router.post("/drafts", controller.create);
 router.post("/realtime-ticket", controller.ticket);
-router.get("/", controller.list);
+router.get("/", creation.list);
 router.get("/:id", controller.get);
 router.delete("/:id", controller.discard);
 router.post("/:id/lock", controller.lock);
 router.post("/:id/unlock", controller.unlock);
 router.post("/:id/send", controller.send);
+router.post("/:id/close", controller.send);
 router.get("/:id/image", controller.image);
 module.exports = router;

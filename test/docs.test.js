@@ -25,11 +25,10 @@ test("docs: Swagger describes every registered API and all pair response schemas
       for (const method of Object.keys(layer.route.methods)) registered.push([method, swaggerPath]);
     }
   } });
-<<<<<<< HEAD
-  assert.equal(registered.length, 28);
-=======
-  assert.equal(registered.length, 25);
->>>>>>> ad1ce781e855bf757bd31598bfc3290135f6562d
+  assert.equal(registered.length, Object.keys(specs.paths)
+    .filter((path) => path !== "/postcards/realtime")
+    .reduce((sum, path) => sum + Object.keys(specs.paths[path])
+      .filter((method) => ["get","post","put","patch","delete"].includes(method)).length, 0));
   const resolve = (value) => {
     if (!value.$ref) return value;
     assert(value.$ref.startsWith("#/"));

@@ -21,6 +21,7 @@ const createApp = ({ specs, docsPage }) => {
       allowedHeaders: [
         "Content-Type",
         "Authorization",
+        "Idempotency-Key",
         "Accept",
         "Origin",
         "X-Requested-With",

@@ -30,7 +30,8 @@ const callRoom = async (env, pairId, action, data) => {
     body: JSON.stringify({ ...data, pairId }),
   }));
   const result = await response.json();
-  if (!response.ok) throw fail(result.message || "Postcard request failed", response.status);
+  if (!response.ok) throw Object.assign(fail(result.message || "Postcard request failed", response.status),
+    result.activePostcardId ? {activePostcardId:result.activePostcardId} : {});
   return result;
 };
 

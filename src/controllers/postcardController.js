@@ -11,6 +11,9 @@ const handle = (action) => async (req, res) => {
   try { return await action(req, res, environment()); }
   catch (error) {
     if (!error.statusCode) console.error("Postcard API error:", error.message);
+    if (error.activePostcardId) return res.status(409).json({
+      statusCode:409, error:"ACTIVE_CANVAS_EXISTS", code:"ACTIVE_CANVAS_EXISTS", message:error.message,
+      data:{activePostcardId:error.activePostcardId},timestamp:new Date().toISOString()});
     return sendErrorResponse(res, error.statusCode || 500,
       error.statusCode ? "Postcard Request Failed" : "Internal Server Error",
       error.statusCode ? error.message : "Could not process postcard request");
@@ -19,7 +22,11 @@ const handle = (action) => async (req, res) => {
 
 const create = handle(async (req, res, env) => {
   const pairId = await service.requirePair(env, req.userId);
-  const postcard = await service.callRoom(env, pairId, "create", { userId: req.userId, canvas: validation.canvas(req.body) });
+  if (req.body.kind !== undefined && req.body.kind !== "shared_canvas") {
+    throw validation.fail("Use the private Doodle endpoint for doodles");
+  }
+  const postcard = await service.callRoom(env, pairId, "create", {
+    userId: req.userId, canvas: validation.canvas(req.body), kind:req.body.kind });
   return sendSuccessResponse(res, 201, "Postcard draft created", postcard);
 });
 
@@ -63,11 +70,16 @@ const roomAction = (action, message) => handle(async (req, res, env) => {
 const send = handle(async (req, res, env) => {
   const row = await service.requirePostcard(env, req.userId, req.params.id);
   if (row.sender_id !== req.userId) throw validation.fail("Only the postcard owner can send", 403);
+  const closing = req.path.endsWith("/close");
+  if (closing && row.kind !== "shared_canvas") throw validation.fail("Not a shared canvas",400);
+  if (!closing && row.kind) throw validation.fail("Use the dedicated Doodle/close endpoint",400);
   if (row.status === "sent") return sendSuccessResponse(res, 200, "Postcard already sent", model.view(row));
   let lockId;
   let candidateKey;
   try {
     const { files, fields } = await parseMultipartForm(req);
+    const title = typeof fields.title === "string" ? fields.title.trim() : "";
+    if (closing && (!title || [...title].length > 80)) throw validation.fail("Canvas title must have 1-80 characters");
     lockId = fields.lockId;
     if (typeof lockId !== "string" || lockId.length > 64 || !/^\d+$/.test(fields.revision || "")) {
       throw validation.fail("lockId and integer revision are required");
@@ -86,7 +98,8 @@ const send = handle(async (req, res, env) => {
       .bind(candidateKey, row.pair_id, Date.now() + 600000).run();
     await env.FILES.put(candidateKey, files.file.buffer, { httpMetadata: { contentType, cacheControl: "private, no-store" } });
     const postcard = await service.callRoom(env, row.pair_id, "finalize", {
-      userId: req.userId, postcardId: row.postcard_id, revision, lockId, imageKey: candidateKey, contentType,
+      userId: req.userId, postcardId: row.postcard_id, revision, lockId,
+      imageKey: candidateKey, contentType, title,
     });
     // A concurrent/retried send may already have committed another candidate.
     const saved = await model.get(env.DB, row.postcard_id);
@@ -120,11 +133,13 @@ const discardCandidate = async (env, key) => {
 const image = handle(async (req, res, env) => {
   const row = await service.requirePostcard(env, req.userId, req.params.id);
   if (row.status !== "sent") throw validation.fail("Postcard has not been sent", 404);
+  if (row.kind === "doodle" && row.expires_at <= Date.now()) throw validation.fail("Doodle expired",410);
   if (!env.FILES) throw validation.fail("R2 image storage is not configured", 503);
   const object = await env.FILES.get(row.image_key);
   if (!object) throw validation.fail("Postcard image not found", 404);
   // Recheck after object retrieval in case the pair was disconnected during I/O.
-  await service.requirePostcard(env, req.userId, req.params.id);
+  const current = await service.requirePostcard(env, req.userId, req.params.id);
+  if (current.kind === "doodle" && current.expires_at <= Date.now()) throw validation.fail("Doodle expired",410);
   res.setHeader("Content-Type", row.image_content_type);
   res.setHeader("Cache-Control", "private, no-store");
   res.setHeader("X-Content-Type-Options", "nosniff");
