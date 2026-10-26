@@ -1,0 +1,11 @@
+# Chép thành .dev.vars để chạy `npm run dev` trên máy.
+# Trên Cloudflare: npx wrangler secret put JWT_SECRET
+JWT_SECRET=doi-thanh-chuoi-ngau-nhien-dai
+
+# Local: API trả kèm OTP trong response, không cần Gmail. Không đặt biến này trên Cloudflare.
+NODE_ENV=development
+
+# Gmail gửi OTP xác thực email (App Password, không phải mật khẩu Gmail).
+# Bỏ trống khi chạy local thì không gửi mail, lấy OTP trong response.
+# EMAIL_USER=your.account@gmail.com
+# EMAIL_PASS=abcdefghijklmnop

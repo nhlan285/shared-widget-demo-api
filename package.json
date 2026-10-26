@@ -1,0 +1,35 @@
+{
+  "name": "shared-widget-be",
+  "description": "Shared Widget backend - Express API on Cloudflare Workers (D1 + R2)",
+  "version": "1.0.0",
+  "private": true,
+  "main": "worker.mjs",
+  "scripts": {
+    "dev": "wrangler dev",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate": "wrangler d1 migrations apply DB --remote --env=\"\"",
+    "db:migrate:staging": "wrangler d1 migrations apply DB --remote --env staging",
+    "deploy": "wrangler deploy --env=\"\"",
+    "deploy:staging": "wrangler deploy --env staging",
+    "logs": "wrangler tail --env=\"\"",
+    "logs:staging": "wrangler tail --env staging",
+    "test": "node --test --test-concurrency=1 test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "worker-mailer": "^1.2.1"
+  },
+  "devDependencies": {
+    "swagger-jsdoc": "^6.2.8",
+    "wrangler": "4.149.0",
+    "ws": "^8.21.0"
+  },
+  "overrides": {
+    "iconv-lite": "0.6.3"
+  }
+}

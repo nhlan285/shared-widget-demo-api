@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shared-widget-demo-api",
+  "account_id": "4bce5751f79111fc1541214fecffd713",
+  "main": "worker.mjs",
+  "compatibility_date": "2025-09-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "build": { "command": "node scripts/build-openapi.js" },
+  "d1_databases": [{"binding": "DB", "database_name": "shared-widget-demo-api", "database_id": "59e3b722-e516-44e9-a228-5e6a450db40b", "migrations_dir": "migrations"}],
+  "r2_buckets": [{"binding": "FILES", "bucket_name": "shared-widget-demo-api"}],
+  "durable_objects": {"bindings": [{"name": "POSTCARD_ROOMS", "class_name": "PostcardRoom"}]},
+  "migrations": [{"tag": "postcards-v1", "new_sqlite_classes": ["PostcardRoom"]}],
+  "triggers": {"crons": ["0 * * * *"]},
+  "vars": {"NODE_ENV": "production"},
+  "observability": {"enabled": true}
+}
