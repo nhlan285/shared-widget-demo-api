@@ -1,6 +1,9 @@
 # Đề xuất API — Doodle và Tranh đôi
 
-Trạng thái: PROPOSED / NOT DEPLOYED. R2 đã có theo xác nhận của chủ dự án.
+Trạng thái: IMPLEMENTED ON ISOLATED DEMO (2026-10-26), không thay backend nguồn.
+Worker: https://shared-widget-demo-api.nguyennhatlan285.workers.dev
+51/51 local tests và remote synthetic smoke PASS. Báo cáo dưới đây giữ cả các
+đề xuất đầy đủ; khác biệt triển khai ghi ở cuối.
 Nguồn: D:/Dyland/Downloads/api-docs.json, SHA256
 279713559946def8f59cb243083421ad01a66c7e4af272152654e91343d877a8.
 Không sửa bản gốc trong Downloads; không sửa auth, pair, device hoặc scan service.
@@ -54,6 +57,20 @@ mất nét: fitCenter/letterbox. Widget native và cập nhật background cần
 push được duyệt ở phase riêng; không đánh đồng preview Flutter với widget OS.
 
 ## Trạng thái tích hợp
+
+### Đã triển khai trên demo riêng
+capabilities, kind/title/TTL, private Doodle send, active singleton (kind bắt buộc),
+owner close/title, server filters/hasMore, latest widget metadata, image410/cleanup.
+Physical postcards.status vẫn draft/sent; creation_metadata ánh xạ shared sent
+thành saved qua API để không rewrite bảng gốc. Legacy không kind vẫn tương thích.
+Giữ tên event gốc postcard.created/sent/discarded và thêm doodle.sent; Flutter nhận
+cả tên gốc lẫn tên canvas.* đề xuất. Machine code đầy đủ ngoài409 active còn là
+đề xuất; client hiện phân loại theo HTTP status. Native OS widgets là phase riêng.
+Auth/pair/device không đổi nghiệp vụ; chỉ khôi phục route bị conflict từ mẫu.
+Chặn lộ ảnh qua /files/postcards (mẫu có test nhưng runtime thiếu guard).
+Production dependency audit0 sau patch lockfile body-parser; dev-only4 còn tồn tại.
+Production NODE_ENV được giữ; SMTP/email chưa cấu hình. Smoke dùng identities và
+session kiểm thử seed riêng, không thêm endpoint bỏ qua đăng nhập/OTP.
 API đang có: GET pair/current, postcards list/detail/image, ticket/stroke/lock.
 API đề xuất chưa có capability: không gọi write từ production. Bản FE phải hiển
 thị yêu cầu backend, không mô phỏng gửi thành công. Chưa có credential test từ auth

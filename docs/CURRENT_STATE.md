@@ -16,6 +16,14 @@ OpenAPI generation/Worker dry-run PASS. Production npm audit0 after lock-only
 body-parser patch;4 dev-only advisories remain. No auth contract rewrite.
 Own D1 shared-widget-demo-api id59e3b722-e516-44e9-a228-5e6a450db40b and private
 R2 bucket shared-widget-demo-api created; account4bce5751f79111fc1541214fecffd713.
-No existing resource overwritten. Worker not deployed yet; no remote acceptance.
-Next: checkpoint, migrate dedicated D1, deploy dedicated Worker/secrets, remote
-owned synthetic smoke, then push new repo branch only. Never push Flutter.
+No existing resource overwritten. Dedicated D1 migrated0001..0007.
+Worker deployed: https://shared-widget-demo-api.nguyennhatlan285.workers.dev
+Initial version028320ad-151e-400a-9489-b8175b23b570; two own generated secrets
+uploaded without printing/committing values. Secrets remain ignored in.local/.
+Remote synthetic smoke PASS: two authenticated WebSockets, race201/409 joins
+winner, owner-only lock/close, Doodle idempotent concurrent send, private R2 bytes,
+latest widget metadata. NOT signup/email/OTP acceptance or two physical devices.
+Fixtures are own example.invalid users in dedicated demo D1 only. Script
+scripts/smoke-creation.mjs refuses other account/database/Worker targets.
+Local fixture JSON contains JWTs: NEVER commit/print/copy into APK.
+Next: push only feature/demo-creation-api in new own repo; frontend remains local.
