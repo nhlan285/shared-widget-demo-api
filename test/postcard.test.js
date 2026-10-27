@@ -75,6 +75,35 @@ test("postcards: authentication, active pair, draft limit and owner-only actions
   assert.equal((await createDraft(a)).status, 201);
 });
 
+test("shared canvases: creator and partner cannot erase each other or discard shared contributions",async()=>{
+  const {a,b}=await server.connect();
+  const created=await server.api("POST","/postcards/drafts",{token:a.token,
+    json:{...canvas,kind:"shared_canvas"}});
+  assert.equal(created.status,201);
+  const id=created.body.data.postcardId,aa=await connect(a),bb=await connect(b);
+  for(const [client,strokeId,revision] of [[aa,"owned-a",0],[bb,"owned-b",1]]){
+    client.emit({type:"stroke.start",postcardId:id,eventId:randomUUID(),baseRevision:revision,
+      strokeId,color:"#ff6699",tool:"pen",width:.01,point:{x:.5,y:.5}});
+    await aa.next("stroke.start");await bb.next("stroke.start");
+  }
+  for(const [client,target]of[[aa,"owned-b"],[bb,"owned-a"]]){
+    client.emit({type:"stroke.remove",postcardId:id,eventId:randomUUID(),baseRevision:2,strokeId:target});
+    assert.equal((await client.next("error")).status,403);
+    client.emit({type:"canvas.clear",postcardId:id,eventId:randomUUID(),baseRevision:2});
+    assert.equal((await client.next("error")).status,403);
+    client.emit({type:"stroke.start",postcardId:id,eventId:randomUUID(),baseRevision:2,
+      strokeId:"raw-eraser",tool:"eraser",color:"#000000",width:.01,point:{x:.5,y:.5}});
+    assert.equal((await client.next("error")).status,403);
+  }
+  assert.equal((await server.api("DELETE",`/postcards/${id}`,{token:a.token})).status,403);
+  const before=await server.api("GET",`/postcards/${id}`,{token:a.token});
+  assert.equal(before.body.data.drawing.strokes.length,2);
+  aa.emit({type:"stroke.remove",postcardId:id,eventId:randomUUID(),baseRevision:2,strokeId:"owned-a"});
+  await aa.next("stroke.remove");await bb.next("stroke.remove");
+  const after=await server.api("GET",`/postcards/${id}`,{token:b.token});
+  assert.deepEqual(after.body.data.drawing.strokes.map(s=>s.actorId),[b.userId]);
+});
+
 test("postcards: both artists draw, reconnect, lock, upload and privately download one immutable image", async () => {
   const { a, b } = await server.connect();
   const draft = (await createDraft(a)).body.data;

@@ -124,8 +124,9 @@ test("creation: private camera/blank Doodles, idempotent race, TTL/image410 and 
     { token: b.token },
   );
   assert.equal(filtered.body.data.postcards.length, 1);
+  // Synchronous SQL CLI below can outlive keep-alive; do not reuse stale sockets.
   const image = await fetch(server.origin + item.imageUrl, {
-    headers: { Authorization: `Bearer ${b.token}` },
+    headers: { Authorization: `Bearer ${b.token}`, Connection: "close" },
   });
   assert.equal(image.status, 200);
   assert.deepEqual(Buffer.from(await image.arrayBuffer()), png);
@@ -133,7 +134,9 @@ test("creation: private camera/blank Doodles, idempotent race, TTL/image410 and 
     `SELECT image_key FROM postcards WHERE postcard_id=${sqlString(item.postcardId)}`,
   )[0];
   assert.equal(
-    (await fetch(server.origin + "/files/" + raw.image_key)).status,
+    (await fetch(server.origin + "/files/" + raw.image_key, {
+      headers: { Connection: "close" },
+    })).status,
     404,
   );
   server.sql(
@@ -142,7 +145,7 @@ test("creation: private camera/blank Doodles, idempotent race, TTL/image410 and 
   assert.equal(
     (
       await fetch(server.origin + item.imageUrl, {
-        headers: { Authorization: `Bearer ${b.token}` },
+        headers: { Authorization: `Bearer ${b.token}`, Connection: "close" },
       })
     ).status,
     410,

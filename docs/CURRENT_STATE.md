@@ -1,3 +1,16 @@
+## Active checkpoint 2026-10-27 — author-only erase
+Branch feature/demo-creation-api, HEAD13d045d before current uncommitted changes.
+Validator/DO restrict shared erasing to own stroke.remove; raster eraser and
+clear-all403; discard403 while foreign strokes exist. Creator may save/close.
+Updated protocol/OpenAPI/API report, ownership unit+WebSocket integration tests.
+Focused8/8 PASS. Full52/53: creation.test.js direct fetch ECONNRESET after sync SQL;
+aligned direct fetch with existing Connection:close helper policy. Full rerun53/53 PASS219s. OpenAPI/dry-run PASS.
+No auth/schema/TTL change. Existing dedicated demo deploy/push authority persists.
+Ownership slice complete; commit now. User approved widget-only24h expiry;
+next implement retained library images separately, then dedicated deploy/push.
+Already reclaimed demo images cannot be restored from metadata.
+Frontend remains local-only. Original resources/repo untouched.
+
 # Current demo state
 Branch feature/demo-creation-api, baseline commit e8a23f6.
 Source snapshot3fccd34; origin=https://github.com/nhlan285/shared-widget-demo-api.git

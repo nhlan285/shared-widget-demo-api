@@ -477,4 +477,8 @@ paths["/postcards/{id}/image"].get.responses[410] = {
   description: "Doodle expired after24h; no image bytes returned",
   content: json(ref("ErrorResponse")),
 };
+schemas.PostcardDrawing.properties.strokes.items.properties.tool.description =
+  "Historical eraser masks only its own actor's earlier ink. New shared canvases accept pen only; erasing sends own stroke.remove IDs.";
+paths["/postcards/{id}"].delete.description =
+  "Owner only, unlocked draft. Shared canvas with another artist's strokes returns403; save/close instead. No participant can discard the other's ink.";
 module.exports = { schemas, paths };

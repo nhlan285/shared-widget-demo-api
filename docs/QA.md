@@ -17,3 +17,12 @@
 - Remote fixtures not personal data. No signup/email/OTP acceptance, production
   traffic/load test, Android background widget or two physical devices claimed.
 - Existing Worker/database/buckets/source repository untouched.
+
+## Own-stroke erasing2026-10-27
+Focused8/8 PASS. Full rerun53/53 PASS219s; OpenAPI/dry-run PASS.
+Both WS roles denied cross-remove, raster eraser and shared clear-all; creator
+cannot discard partner contributions. Own remove succeeds without foreign change.
+Initial full52/53 had direct-fetch ECONNRESET after sync fixture CLI; aligned
+Connection:close with existing helper. No prod retry/security rule weakened.
+Frontended84888 local checkpoint; no Flutter push. Dedicated deploy after retention
+slice (user just selected widget-only24h expiry, library image retained).

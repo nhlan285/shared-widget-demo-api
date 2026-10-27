@@ -28,3 +28,21 @@ test("postcard image: rejects wrong MIME, dimensions, truncation and oversized i
   assert.throws(() => imageType({ mimetype: "image/png", buffer: bytes.subarray(0, 33) }, 1, 1));
   assert.throws(() => imageType({ mimetype: "image/png", buffer: Buffer.alloc(10 * 1024 * 1024 + 1) }, 1, 1));
 });
+
+test("shared ownership: both roles remove only themselves and cannot bypass via raster erase or clear-all",()=>{
+  let drawing=applyEvent(fresh(),start,"a","a",{ownStrokesOnly:true}).drawing;
+  drawing=applyEvent(drawing,{...start,eventId:"b1",strokeId:"stroke-b",baseRevision:1},
+    "b","a",{ownStrokesOnly:true}).drawing;
+  for(const [actor,target] of [["a","stroke-b"],["b","stroke-a"]]){
+    assert.throws(()=>applyEvent(drawing,{type:"stroke.remove",eventId:actor+"-remove",
+      baseRevision:2,strokeId:target},actor,"a",{ownStrokesOnly:true}),{statusCode:403});
+    assert.throws(()=>applyEvent(drawing,{...start,tool:"eraser",eventId:actor+"-erase",
+      baseRevision:2,strokeId:actor+"-mask"},actor,"a",{ownStrokesOnly:true}),{statusCode:403});
+    assert.throws(()=>applyEvent(drawing,{type:"canvas.clear",eventId:actor+"-clear",
+      baseRevision:2},actor,"a",{ownStrokesOnly:true}),{statusCode:403});
+  }
+  const removed=applyEvent(drawing,{type:"stroke.remove",eventId:"a-own",baseRevision:2,
+    strokeId:"stroke-a"},"a","a",{ownStrokesOnly:true}).drawing;
+  assert.deepEqual(removed.strokes.map(s=>s.actorId),["b"]);
+  assert.equal(drawing.strokes.length,2,"rejections do not mutate canonical ink");
+});

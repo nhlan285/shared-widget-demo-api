@@ -6,8 +6,11 @@
 - Mỗi người có tối đa một bản nháp: một pair tối đa hai bản nháp.
 - Cả hai được vẽ lên mỗi canvas. Người tạo là chủ postcard và là người gửi;
   thành viên còn lại là người nhận, kể cả khi hai người cùng đóng góp nét vẽ.
-- Mỗi người chỉ sửa/hoàn tác nét của mình. Cả hai được dùng công cụ tẩy.
-- Chủ postcard được xóa toàn bộ canvas, hủy nháp, khóa/mở khóa và Gửi.
+- Mỗi người chỉ sửa/hoàn tác/xóa nét của mình. Với kind=shared_canvas, tẩy dùng
+  stroke.remove theo ID của chính mình; không tạo raster eraser.
+- Legacy postcard không kind giữ quyền clear-all của chủ. Shared canvas chặn
+  canvas.clear cho cả hai; chủ chỉ hủy nháp khi không có nét của người khác,
+  nếu có đóng góp của người kia phải lưu/đóng thay vì hủy.
 - Gửi thành công tạo một ảnh bất biến trong R2. Bản nháp tiếp theo là postcard mới.
 - Hủy pair xóa lịch sử postcard khỏi D1 ngay trong transaction archive pair,
   đóng realtime và thu hồi API ảnh. File R2 được xóa ngay khi có thể, có hàng đợi
@@ -142,17 +145,18 @@ tối đa 64 ký tự; nên dùng UUID. Không truyền `actorId`: server tự g
 
 | Type | Các field bổ sung |
 | --- | --- |
-| `stroke.start` | `strokeId`, `tool: pen/eraser`, `color`, `width`, `point` |
+| `stroke.start` | `strokeId`, `tool: pen` cho shared mới; eraser chỉ legacy, `color`, `width`, `point` |
 | `stroke.append` | `strokeId`, `points: [{x,y}, ...]`, 1–64 điểm/lần |
 | `stroke.end` | `strokeId` của chính người gửi |
 | `stroke.remove` | `strokeId` của chính người gửi (hoàn tác) |
-| `canvas.clear` | Chỉ chủ postcard; cần baseRevision chính xác |
+| `canvas.clear` | Chỉ chủ legacy postcard; shared_canvas trả403, dùng xóa nét riêng |
 | `canvas.sync` | Chỉ cần `postcardId`; yêu cầu snapshot, không thay đổi dữ liệu |
 
 Tọa độ `x,y` chuẩn hóa 0–1. Độ rộng bút 0.001–0.1 nhân với chiều rộng canvas.
-Render nét theo thứ tự `strokes` trong snapshot. Vẽ nét lên layer trong suốt;
-eraser dùng `destination-out` trên layer này, rồi ghép layer lên màu nền canvas
-khi export. Cả hai client phải dùng cùng quy tắc render.
+Render nét theo đúng thứ tự strokes. Nếu snapshot cũ có raster eraser, mask chỉ
+áp dụng lên các nét có cùng actorId được tạo trước mask, không áp lên layer
+chung của cả hai. Không gom toàn bộ nét theo tác giả làm đổi thứ tự chồng nét.
+Preview và export cùng renderer; ảnh R2 đã lưu bất biến không bị render lại.
 
 Mỗi người được có một nét chưa kết thúc trên mỗi canvas, hai người có thể vẽ
 đồng thời. Giới hạn mỗi canvas: 256 nét, tổng 8000 điểm; message tối đa 16 KB,

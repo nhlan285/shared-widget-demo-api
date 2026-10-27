@@ -1,5 +1,18 @@
 # Đề xuất API — Doodle và Tranh đôi
 
+## Bổ sung2026-10-27 — chỉ tác giả được xóa nét
+| Nơi sửa | Thao tác | Lý do / quy tắc | Nơi sử dụng |
+| --- | --- | --- | --- |
+| WebSocket stroke.remove | Giữ kiểm tra actorId, dùng cho tẩy và undo | Cả creator lẫn partner chỉ xóa ID nét của mình; server lấy actor từ ticket, không tin client | Room eraser hit-test, Undo |
+| WebSocket stroke.start / PostcardDrawing.tool.description | Sửa với kind=shared_canvas | Chỉ tạo pen; raster eraser mới trả403 vì mask layer chung có thể xóa nét người khác. Legacy không kind vẫn tương thích | New shared editor/protocol |
+| WebSocket canvas.clear | Sửa với kind=shared_canvas | Trả403 cho cả creator và partner; dùng remove từng nét riêng thay vì clear-all | Chặn client cũ/bypass |
+| DELETE /postcards/{id} | Sửa mô tả/guard | Creator cũng không hủy khi snapshot còn nét của tác giả khác; trả403, chọn lưu/đóng. Vẫn hủy được nháp chỉ có nét của mình | Owner exit sheet |
+| Canonical preview/PNG rendering | Sửa | Mask cũ chỉ tác động nét cùng actorId được vẽ trước mask; giữ thứ tự chồng nét. R2 PNG đã lưu không tự sửa lại | RoomCanvasPainter/export |
+
+Không đổi auth, token, schema DB, endpoint mới hoặc quyền lưu/đặt tên/đóng.
+Tẩy mới xóa nguyên nét của chính người thao tác, không quét pixel của layer chung.
+Không đổi chính sách24h trong lượt sửa này.
+
 Trạng thái: IMPLEMENTED ON ISOLATED DEMO (2026-10-26), không thay backend nguồn.
 Worker: https://shared-widget-demo-api.nguyennhatlan285.workers.dev
 51/51 local tests và remote synthetic smoke PASS. Báo cáo dưới đây giữ cả các

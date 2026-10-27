@@ -155,6 +155,9 @@ export class PostcardRoom extends DurableObject {
       return Response.json({ revision: drawing.revision });
     }
     if (url.pathname === "/discard") {
+      if (row.kind === "shared_canvas" && drawing.strokes.some(s => s.actorId !== data.userId)) {
+        throw validation.fail("Cannot discard another artist's strokes; save and close instead", 403);
+      }
       if (drawing.lock) throw validation.fail("Unlock the canvas before discarding", 409);
       await this.env.DB.prepare("DELETE FROM postcards WHERE postcard_id = ? AND status = 'draft'").bind(row.postcard_id).run();
       await this.ctx.storage.delete(`drawing:${row.postcard_id}`);
@@ -236,7 +239,8 @@ export class PostcardRoom extends DurableObject {
         if (row.status !== "draft") throw validation.fail("Sent postcards are immutable", 409);
         const drawing = await this.drawing(row.postcard_id);
         if (drawing.lock) throw validation.fail("Canvas is locked for sending", 409);
-        const result = validation.applyEvent(drawing, event, actor.userId, row.sender_id);
+        const result = validation.applyEvent(drawing, event, actor.userId, row.sender_id,
+          { ownStrokesOnly: row.kind === "shared_canvas" });
         if (!result.duplicate) {
           // Durable storage commit precedes acknowledgement and broadcast.
           await this.ctx.storage.put(`drawing:${row.postcard_id}`, result.drawing);

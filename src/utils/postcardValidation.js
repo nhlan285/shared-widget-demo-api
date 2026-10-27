@@ -13,7 +13,7 @@ const canvas = (body) => {
   return { width: body.width, height: body.height, backgroundColor: body.backgroundColor };
 };
 
-const applyEvent = (drawing, event, actorId, ownerId) => {
+const applyEvent = (drawing, event, actorId, ownerId, { ownStrokesOnly = false } = {}) => {
   if (!event || !id(event.eventId) || !Number.isInteger(event.baseRevision)) {
     throw fail("eventId and integer baseRevision are required");
   }
@@ -28,6 +28,9 @@ const applyEvent = (drawing, event, actorId, ownerId) => {
   let payload;
   switch (event.type) {
     case "stroke.start":
+      if (ownStrokesOnly && event.tool === "eraser") {
+        throw fail("Shared erasing must remove your own stroke IDs", 403);
+      }
       if (!id(event.strokeId) || stroke || !color(event.color)
         || !Number.isFinite(event.width) || event.width < 0.001 || event.width > 0.1
         || !point(event.point) || !["pen", "eraser"].includes(event.tool || "pen")) {
@@ -58,6 +61,7 @@ const applyEvent = (drawing, event, actorId, ownerId) => {
       payload = { strokeId: stroke.strokeId };
       break;
     case "canvas.clear":
+      if (ownStrokesOnly) throw fail("Remove your own strokes individually; shared clear-all is disabled", 403);
       if (actorId !== ownerId) throw fail("Only the postcard owner can clear the canvas", 403);
       if (event.baseRevision !== drawing.revision) throw fail("Sync before clearing the canvas", 409);
       next.strokes = [];
