@@ -11,7 +11,19 @@
 
 Không đổi auth, token, schema DB, endpoint mới hoặc quyền lưu/đặt tên/đóng.
 Tẩy mới xóa nguyên nét của chính người thao tác, không quét pixel của layer chung.
-Không đổi chính sách24h trong lượt sửa này.
+Riêng bước ownership không đổi24h; chính sách tiếp theo được duyệt bên dưới.
+
+## Quyết định2026-10-27 — 24h chỉ áp dụng widget
+| Nơi sửa | Thao tác | Lý do | Nơi dùng |
+| --- | --- | --- | --- |
+| Postcard.expiresAt description | Sửa | Hạn widget=sentAt+24h; không phải hạn lưu ảnh | Widget-state/native deadline |
+| GET /postcards/{id}/image | Bỏ410 do TTL | Thư viện vẫn tải ảnh sau24h, giữ Bearer/active pair/no-store và kiểm tra lại sau R2 I/O | ArtworkRepository, library tile/detail |
+| Hourly postcard image cleanup | Sửa | Không enqueue TTL; bỏ queue TTL cũ cho Doodle đã commit/pair active; giữ orphan/disconnect cleanup | R2 library retention |
+| Flutter Artwork/widget selector | Sửa | widgetExpired chỉ lọc widget; bỏ expiry timer/gate trong thư viện | Postcat feed vs library |
+
+Không sửa auth, schema DB hay gửi lại sentAt; không gia hạn widget khi xem ảnh.
+`expiry_queued` cũ giữ nguyên tương thích nhưng không còn dùng cho TTL.
+Ảnh demo đã bị cron cũ xóa không thể khôi phục từ metadata.
 
 Trạng thái: IMPLEMENTED ON ISOLATED DEMO (2026-10-26), không thay backend nguồn.
 Worker: https://shared-widget-demo-api.nguyennhatlan285.workers.dev
@@ -26,8 +38,8 @@ Swagger không tạo ra API đang chạy. Flutter phải kiểm tra capability t
 ## Hai loại nội dung
 `doodle`: một người chụp ảnh/vẽ/sticker/text hoặc vẽ nền trống; soạn riêng trên
 máy, gửi một PNG đã flatten; người kia chỉ thấy sau khi gửi. Hết 24h thì rời widget
-và không được truy cập nội dung. Thư viện còn metadata ngày/người gửi cùng thẻ hết
-hạn; không giữ ảnh bí mật bằng cache. Nếu muốn lưu Doodle lâu dài cần yêu cầu riêng.
+nhưng thư viện vẫn giữ ảnh/ngày/người gửi để xem lại và lọc. `expiresAt` chỉ là
+hạn hiển thị widget; ảnh vẫn private và yêu cầu pair còn active.
 
 `shared_canvas`: hai người vẽ cùng, một canvas active/pair; owner là người thắng
 transaction tạo. Owner mới đặt tên/lưu/đóng/hủy. Partner rời màn hình không đóng
@@ -46,9 +58,9 @@ room. Bản lưu bất biến không có TTL; widget canvas lấy bản lưu m�
 | `/paths/~1postcards~1{id}/delete` | Giữ/sửa mô tả | Chỉ owner hủy canvas draft unlocked; không DELETE sent/saved; không dùng DELETE khi partner rời | Owner hủy khi thoát |
 | `/paths/~1postcards~1{id}~1send/post` | Deprecate cho luồng mới | Giữ tương thích postcard cũ; không dùng để gửi PNG Doodle riêng vì snapshot shared không chứa camera/sticker. Không xóa endpoint đang có client | Legacy only |
 | `/paths/~1postcards~1widget-state/get` | Thêm | `{data:{doodle:Postcard|null,canvas:Postcard|null}}`; doodle mới nhất chưa hết hạn, canvas shared saved mới nhất theo closedAt; server time `now`; client ẩn TTL trên resume/đúng deadline. Không gồm draft | Hai Android widgets về sau |
-| `/paths/~1postcards~1{id}~1image/get` | Sửa | Giữ Bearer và bytes, same-origin API; Doodle hết hạn trả410, thu hồi R2; Cache-Control:private,no-store. Pair disconnect/auth mất phải thu hồi bytes cache; canvas saved vẫn truy cập khi pair active | PrivateArtwork / detail |
+| `/paths/~1postcards~1{id}~1image/get` | Sửa | Giữ Bearer và bytes, same-origin API; Doodle qua24h vẫn trả ảnh200 cho pair hợp lệ; Cache-Control:private,no-store. Pair disconnect/auth mất phải thu hồi bytes cache; canvas saved vẫn truy cập khi pair active | PrivateArtwork / detail |
 | WebSocket protocol trong POSTCARD_REALTIME.md | Thêm | Giữ stroke.* snapshot/revision/lock đã có. Room broadcasts `canvas.created` với postcard, `canvas.closed` với postcard, `canvas.discarded` với postcardId và `doodle.sent` với postcard; pair-wide events buộc refetch authoritative lists/active. Không broadcast Doodle nháp | Lobby, library invalidation, editor |
-| `/components/schemas/ErrorResponse` (riêng creation) | Thêm | Machine `code`: FEATURE_NOT_AVAILABLE, ACTIVE_CANVAS_EXISTS, REVISION_CONFLICT, NOT_OWNER, DOODLE_EXPIRED; không đổi mã401/403; 410 hết hạn; 503 R2/DO | Recovery/disabled states |
+| `/components/schemas/ErrorResponse` (riêng creation) | Thêm | Machine `code`: FEATURE_NOT_AVAILABLE, ACTIVE_CANVAS_EXISTS, REVISION_CONFLICT, NOT_OWNER; không đổi mã401/403; 503 R2/DO | Recovery/disabled states |
 
 Không xóa endpoint/schema auth/pair/scan/device. Không thêm API fake reactions,
 streak, share-link, read receipt khi chưa có nghiệp vụ/contract. Tạm ẩn chức năng
@@ -73,7 +85,7 @@ push được duyệt ở phase riêng; không đánh đồng preview Flutter v�
 
 ### Đã triển khai trên demo riêng
 capabilities, kind/title/TTL, private Doodle send, active singleton (kind bắt buộc),
-owner close/title, server filters/hasMore, latest widget metadata, image410/cleanup.
+owner close/title, server filters/hasMore, latest widget metadata, private media/orphan+disconnect cleanup.
 Physical postcards.status vẫn draft/sent; creation_metadata ánh xạ shared sent
 thành saved qua API để không rewrite bảng gốc. Legacy không kind vẫn tương thích.
 Giữ tên event gốc postcard.created/sent/discarded và thêm doodle.sent; Flutter nhận

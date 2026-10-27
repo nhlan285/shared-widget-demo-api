@@ -473,10 +473,10 @@ paths["/postcards/{id}/close"] = {
   }),
 };
 paths["/postcards/{id}/send"].post.deprecated = true;
-paths["/postcards/{id}/image"].get.responses[410] = {
-  description: "Doodle expired after24h; no image bytes returned",
-  content: json(ref("ErrorResponse")),
-};
+schemas.Postcard.properties.expiresAt.description =
+  "Doodle widget deadline only (sentAt+24h). Authenticated library image remains available while the pair is active.";
+paths["/postcards/{id}/image"].get.description =
+  "Private image for active pair members, including Doodles past their widget deadline. No public R2 URL; private,no-store. Pair revocation still denies access.";
 schemas.PostcardDrawing.properties.strokes.items.properties.tool.description =
   "Historical eraser masks only its own actor's earlier ink. New shared canvases accept pen only; erasing sends own stroke.remove IDs.";
 paths["/postcards/{id}"].delete.description =

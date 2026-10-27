@@ -1,47 +1,43 @@
-## Active checkpoint 2026-10-27 — author-only erase
-Branch feature/demo-creation-api, HEAD13d045d before current uncommitted changes.
-Validator/DO restrict shared erasing to own stroke.remove; raster eraser and
-clear-all403; discard403 while foreign strokes exist. Creator may save/close.
-Updated protocol/OpenAPI/API report, ownership unit+WebSocket integration tests.
-Focused8/8 PASS. Full52/53: creation.test.js direct fetch ECONNRESET after sync SQL;
-aligned direct fetch with existing Connection:close helper policy. Full rerun53/53 PASS219s. OpenAPI/dry-run PASS.
-No auth/schema/TTL change. Existing dedicated demo deploy/push authority persists.
-Ownership slice complete; commit now. User approved widget-only24h expiry;
-next implement retained library images separately, then dedicated deploy/push.
-Already reclaimed demo images cannot be restored from metadata.
-Frontend remains local-only. Original resources/repo untouched.
+# Current own demo state — 2026-10-27
 
-# Current demo state
-Branch feature/demo-creation-api, baseline commit e8a23f6.
-Source snapshot3fccd34; origin=https://github.com/nhlan285/shared-widget-demo-api.git
-(private, created with existing Git credential; GitHub MCP create failed auth).
-Original clone remains read-only. No push yet.
-Wrangler account verified; config excludes all source resource IDs.
-User authorizes own demo additions/push/deploy; frontend local only/no merge.
-Dependencies installed; sample audit reports5 vulnerabilities (not yet triaged).
-Creation implementation complete locally: additive migration0007, private Doodles,
-24h image410 and cleanup queue, pair singleton canvas and owner close/title,
-filtered/paged metadata, capabilities/widget-state, lifecycle broadcasts.
-Sample had conflict markers in router/test helpers/docs and public postcard R2
-exposure; corrected only on demo. Existing auth/device/pair routes retained.
-51/51 backend tests PASS (168s), targeted creation+postcard6/6 PASS,
-OpenAPI generation/Worker dry-run PASS. Production npm audit0 after lock-only
-body-parser patch;4 dev-only advisories remain. No auth contract rewrite.
-Own D1 shared-widget-demo-api id59e3b722-e516-44e9-a228-5e6a450db40b and private
-R2 bucket shared-widget-demo-api created; account4bce5751f79111fc1541214fecffd713.
-No existing resource overwritten. Dedicated D1 migrated0001..0007.
-Worker deployed: https://shared-widget-demo-api.nguyennhatlan285.workers.dev
-Initial version028320ad-151e-400a-9489-b8175b23b570; two own generated secrets
-uploaded without printing/committing values. Secrets remain ignored in.local/.
-Remote synthetic smoke PASS: two authenticated WebSockets, race201/409 joins
-winner, owner-only lock/close, Doodle idempotent concurrent send, private R2 bytes,
-latest widget metadata. NOT signup/email/OTP acceptance or two physical devices.
-Fixtures are own example.invalid users in dedicated demo D1 only. Script
-scripts/smoke-creation.mjs refuses other account/database/Worker targets.
-Local fixture JSON contains JWTs: NEVER commit/print/copy into APK.
-Own branch pushed/verified5daee6447304c612867938661434268b7255e7d4.
-Safe fixture renewal: node scripts/smoke-creation.mjs --refresh-session-only
-(updates only the owned synthetic session; keeps every open/saved artwork).
-Never rerun the full smoke merely to renew a phone fixture: that suite can discard
-its own active QA canvas. Production auth still requires host/SMTP setup.
-Frontend remains local-only on feature/ui-doodle-editor.
+## Scope / refs
+feature/demo-creation-api; ownership checkpoint24fc33a, retention commit follows.
+Own private origin https://github.com/nhlan285/shared-widget-demo-api.git.
+Sample snapshot3fccd34; original reference clone/team resources read-only.
+User authorized own demo additions/deploy/push; frontend LOCAL ONLY, no merge.
+Never touch protected/unrelated branches/resources or commit .local credentials.
+
+## Delivered
+- Creation Doodle/private PNG, idempotency, pair singleton canvas, filtered archive,
+  creator-only save/name/close, authenticated R2 bytes and widget-state.
+- Each artist removes only own strokes; new shared raster masks/clear-all403;
+  creator cannot discard another artist's contributions. Legacy API preserved.
+- User approved widget-only24h expiry: expires_at is widget deadline; library
+  images retained. No image410/TTL enqueue; stale cleanup rows for linked active
+  Doodles cancelled. Orphan uploads/revoked pairs still cleaned. No migration.
+- Old expiry_queued field retained dormant. Already reclaimed old demo R2 bytes
+  cannot be recreated from metadata. No signup/email/OTP acceptance claimed.
+
+## Validation / exact next
+Ownership53/53 PASS219s; retention full53/53 PASS246.6s. Creation focused2/2
+includes scheduled stale queue cancellation, expired image200/library retained,
+widget null, outsider/disconnect403. OpenAPI build and dedicated dry-run PASS.
+Initial ownership full fetch ECONNRESET fixed only test keep-alive reuse.
+Next: commit retention, deploy dedicated Worker, run synthetic retention smoke,
+push own backend branch and record result. No frontend push. No DB migration.
+
+## Dedicated resources / safe synthetic QA
+Worker https://shared-widget-demo-api.nguyennhatlan285.workers.dev
+Account4bce5751f79111fc1541214fecffd713; D1 shared-widget-demo-api
+59e3b722-e516-44e9-a228-5e6a450db40b; private R2 bucket same name; DO PostcardRoom.
+Config wrangler.jsonc owns only these targets. Original resources untouched.
+node scripts/smoke-creation.mjs --refresh-session-only renews owned fixture tokens
+without deleting art. Refreshed this session. Never print/copy JWT into APK.
+node scripts/smoke-doodle-retention.mjs creates/time-travels one owned synthetic
+Doodle, checks retained image/date search/widget absence. No shared room touched.
+Do not rerun full original smoke just to renew sessions (it can discard QA room).
+
+## Limits
+Auth/SMTP/backend background push still separate phase. Production audit0 after
+lock-only body-parser fix;4 existing dev advisories. No dependency change here.
+API report docs/CREATION_API_CHANGES.md; evidence docs/QA.md; phase active plan.

@@ -26,3 +26,10 @@ Initial full52/53 had direct-fetch ECONNRESET after sync fixture CLI; aligned
 Connection:close with existing helper. No prod retry/security rule weakened.
 Frontended84888 local checkpoint; no Flutter push. Dedicated deploy after retention
 slice (user just selected widget-only24h expiry, library image retained).
+
+## Widget-only expiry2026-10-27
+User chose retained library image. Full53/53 PASS246.6s; OpenAPI/dry-run PASS.
+Focused creation2/2 PASS24s covers deadline image200, archive and widget absence,
+scheduled stale TTL queue cancellation, outsider/disconnect403. Original widget
+filter, active-pair recheck and cleanup revocation retained. No schema migration.
+Remote synthetic retention smoke next; no production user data involved.

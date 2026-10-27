@@ -133,13 +133,11 @@ const discardCandidate = async (env, key) => {
 const image = handle(async (req, res, env) => {
   const row = await service.requirePostcard(env, req.userId, req.params.id);
   if (row.status !== "sent") throw validation.fail("Postcard has not been sent", 404);
-  if (row.kind === "doodle" && row.expires_at <= Date.now()) throw validation.fail("Doodle expired",410);
   if (!env.FILES) throw validation.fail("R2 image storage is not configured", 503);
   const object = await env.FILES.get(row.image_key);
   if (!object) throw validation.fail("Postcard image not found", 404);
   // Recheck after object retrieval in case the pair was disconnected during I/O.
-  const current = await service.requirePostcard(env, req.userId, req.params.id);
-  if (current.kind === "doodle" && current.expires_at <= Date.now()) throw validation.fail("Doodle expired",410);
+  await service.requirePostcard(env, req.userId, req.params.id);
   res.setHeader("Content-Type", row.image_content_type);
   res.setHeader("Cache-Control", "private, no-store");
   res.setHeader("X-Content-Type-Options", "nosniff");

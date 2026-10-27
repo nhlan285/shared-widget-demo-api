@@ -17,7 +17,17 @@ repo/resource name shared-widget-demo-api. Keep sample auth/pair/device endpoint
 npm test; OpenAPI build; Worker dry-run; local race/ownership/idempotency/TTL/private
 R2 tests; remote smoke. Email credentials not configured; no native OS widgets.
 
-## Handoff
+## Retention correction2026-10-27
+User approved widget-only24h expiry; library image retained. Ownership baseline
+24fc33a:53/53 PASS. Remove TTL image410/purge; cancel stale queue rows for linked
+Doodles in active pairs, keep orphan/disconnect cleanup and auth recheck after R2.
+No migration; keep old expiry_queued field dormant. Image already purged by old
+cron cannot be restored. Focused creation2/2 PASS including scheduled cleanup,
+past-deadline image200/library metadata/widget null/outsider+disconnect403.
+Full rerun pending; then dry-run/deploy own dedicated Worker and backend push.
+Frontend local only. No unrelated resource, source repo or auth changes.
+
+## Historical handoff
 Source extracted/dependencies installed. First GitHub MCP create failed bad
 credentials; Cloudflare rejected create because sample account config was still
 present (no resource created). Config now corrected to verified own account.

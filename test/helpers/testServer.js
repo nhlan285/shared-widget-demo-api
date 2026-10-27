@@ -88,7 +88,7 @@ function createTestServer({ withoutR2 = false } = {}) {
     worker = spawn(process.execPath, [
       WRANGLER, "dev", "--config", config,
       "--port", String(port), "--ip", "127.0.0.1", "--persist-to", state,
-      "--show-interactive-dev-session=false",
+      "--show-interactive-dev-session=false", "--test-scheduled",
     ], {
       cwd: ROOT, stdio: "pipe", windowsHide: true,
       env: { ...process.env, WRANGLER_SEND_METRICS: "false", WRANGLER_LOG_PATH: path.join(state, "wrangler.log") },

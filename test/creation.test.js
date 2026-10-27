@@ -100,7 +100,7 @@ test("creation: singleton race joins winner, only owner closes and next page get
   assert.equal(archive.body.data.postcards.length, 1);
   assert.equal(archive.body.data.hasMore, false);
 });
-test("creation: private camera/blank Doodles, idempotent race, TTL/image410 and sender/date filters", async () => {
+test("creation: private camera/blank Doodles, idempotent race, widget-only TTL, retained private image and sender/date filters", async () => {
   const { a, b } = await server.connect(),
     key = randomUUID();
   const replies = await Promise.all([send(a, key), send(a, key)]);
@@ -140,19 +140,32 @@ test("creation: private camera/blank Doodles, idempotent race, TTL/image410 and 
     404,
   );
   server.sql(
-    `UPDATE creation_metadata SET expires_at=0 WHERE postcard_id=${sqlString(item.postcardId)}`,
+    `UPDATE creation_metadata SET expires_at=1,expiry_queued=1 WHERE postcard_id=${sqlString(item.postcardId)}`,
   );
-  assert.equal(
-    (
-      await fetch(server.origin + item.imageUrl, {
-        headers: { Authorization: `Bearer ${b.token}`, Connection: "close" },
-      })
-    ).status,
-    410,
-  );
+  // Simulate an expiry cleanup entry left by the previous demo policy.
+  server.sql(`INSERT INTO postcard_image_cleanup(image_key,pair_id,not_before)
+    SELECT image_key,pair_id,0 FROM postcards WHERE postcard_id=${sqlString(item.postcardId)}`);
+  const tick = await fetch(server.origin + "/__scheduled", {headers:{Connection:"close"}});
+  assert.equal(tick.status,200);
+  await tick.text();
+  const retained = await fetch(server.origin + item.imageUrl, {
+    headers: { Authorization: `Bearer ${b.token}`, Connection: "close" },
+  });
+  assert.equal(retained.status,200);
+  assert.deepEqual(Buffer.from(await retained.arrayBuffer()),png);
+  assert.equal(server.sql(`SELECT COUNT(*) AS n FROM postcard_image_cleanup
+    WHERE image_key=${sqlString(raw.image_key)}`)[0].n,0);
+  const archive = await server.api("GET","/postcards?kind=doodle",{token:b.token});
+  assert.equal(archive.body.data.postcards[0].postcardId,item.postcardId);
   assert.equal(
     (await server.api("GET", "/postcards/widget-state", { token: b.token }))
       .body.data.doodle,
     null,
   );
+  const outsider = await server.createUser();
+  assert.equal((await server.api("GET",item.imageUrl.replace("/v1",""),
+    {token:outsider.token})).status,403);
+  assert.equal((await server.api("POST","/pairs/current/disconnect",{token:a.token})).status,200);
+  assert.equal((await server.api("GET",item.imageUrl.replace("/v1",""),
+    {token:b.token})).status,403);
 });
