@@ -32,4 +32,10 @@ User chose retained library image. Full53/53 PASS246.6s; OpenAPI/dry-run PASS.
 Focused creation2/2 PASS24s covers deadline image200, archive and widget absence,
 scheduled stale TTL queue cancellation, outsider/disconnect403. Original widget
 filter, active-pair recheck and cleanup revocation retained. No schema migration.
-Remote synthetic retention smoke next; no production user data involved.
+Dedicated deploy5b3f3445-bd59-4437-ad29-1c6381bf171e PASS.
+Remote synthetic retention smoke PASS: item3728a9ff-f58a-48a6-b447-e79330ac742d,
+image bytes200/private, date-filtered archive retains ID; widget excludes it.
+No production user data/shared room modified. Android demo installed checksum
+39777b3a0f3b4b400450e1d261ac864843b09413a2d0b718e891dcaaf031e489.
+Flutter229/229 PASS, analyze no issues115.8s, APK build51.8s. New physical two-user
+eraser gesture QA NOT RUN; local WS actor-denial and pixel ownership tests PASS.

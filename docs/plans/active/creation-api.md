@@ -24,7 +24,9 @@ Doodles in active pairs, keep orphan/disconnect cleanup and auth recheck after R
 No migration; keep old expiry_queued field dormant. Image already purged by old
 cron cannot be restored. Focused creation2/2 PASS including scheduled cleanup,
 past-deadline image200/library metadata/widget null/outsider+disconnect403.
-Full rerun pending; then dry-run/deploy own dedicated Worker and backend push.
+Full53/53 PASS246.6s; dry-run/deploy PASS5b3f3445-bd59-4437-ad29-1c6381bf171e.
+Remote synthetic retention smoke PASS (private image, date archive, widget hidden).
+Ownership24fc33a/retention285bc04 complete; final QA checkpoint/push own branch next.
 Frontend local only. No unrelated resource, source repo or auth changes.
 
 ## Historical handoff

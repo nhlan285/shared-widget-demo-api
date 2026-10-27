@@ -1,7 +1,7 @@
 # Current own demo state — 2026-10-27
 
 ## Scope / refs
-feature/demo-creation-api; ownership checkpoint24fc33a, retention commit follows.
+feature/demo-creation-api; ownership24fc33a; retention285bc04; final QA checkpoint follows.
 Own private origin https://github.com/nhlan285/shared-widget-demo-api.git.
 Sample snapshot3fccd34; original reference clone/team resources read-only.
 User authorized own demo additions/deploy/push; frontend LOCAL ONLY, no merge.
@@ -23,8 +23,13 @@ Ownership53/53 PASS219s; retention full53/53 PASS246.6s. Creation focused2/2
 includes scheduled stale queue cancellation, expired image200/library retained,
 widget null, outsider/disconnect403. OpenAPI build and dedicated dry-run PASS.
 Initial ownership full fetch ECONNRESET fixed only test keep-alive reuse.
-Next: commit retention, deploy dedicated Worker, run synthetic retention smoke,
-push own backend branch and record result. No frontend push. No DB migration.
+Dedicated Worker deployed version5b3f3445-bd59-4437-ad29-1c6381bf171e.
+Remote retention smoke PASS: private image200 beyond deadline, date-filtered
+archive retains item, widget excludes it (3728a9ff-f58a-48a6-b447-e79330ac742d).
+Android API demo installed, SHA25639777b3a0f3b4b400450e1d261ac864843b09413a2d0b718e891dcaaf031e489.
+Next: commit QA checkpoint/push own branch then verify remote; frontend retains
+local-only commits. Implementation complete; host auth integration remains next.
+No DB migration; no original/team/protected branch touched.
 
 ## Dedicated resources / safe synthetic QA
 Worker https://shared-widget-demo-api.nguyennhatlan285.workers.dev
